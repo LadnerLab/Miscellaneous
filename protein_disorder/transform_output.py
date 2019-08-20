@@ -21,9 +21,7 @@ def main():
 def get_parser( input_fname ):
     parser = MoronParser()
 
-    if moron_p.peek( input_fname ):
-        pass
-    else:
+    if not parser.peek( input_fname ):
         parser = IUPredParser()
 
         if not parser.peek( input_fname ):
@@ -40,9 +38,9 @@ class MoronParser:
         first_re = re.compile( '\(Sequence (\d+) of (\d+)\):' )
 
         with open( fname, 'r' ) as of:
-            for line in fname:
+            for line in of:
 
-                if len( line ) and re.findall( first_re, line.strip() ):
+                if len( line ) and re.match( first_re, line.strip() ):
                     return True
             return False
 
@@ -52,7 +50,12 @@ class IUPredParser:
         pass
 
     def peek( self, fname ):
-        pass
+        with open( fname, 'r' ) as of:
+            for line in of:
+                if line[ 0 ] == '>':
+                    return True
+                return False
+        return False
 
 if __name__ == '__main__':
     main()
