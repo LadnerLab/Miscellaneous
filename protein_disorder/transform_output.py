@@ -10,7 +10,7 @@ def main():
                                                      "It will be inferred from which program the output is. ",
                              type = str
                            )
-    arg_parser.add_argument( '--output', '-o', help = "Name of file to write output to. File will contain a header." )
+    arg_parser.add_argument( '--output', '-o', help = "Name of file to write output to. File will contain a header.", default = 'transformed.tsv' )
 
 
     args = arg_parser.parse_args() 
@@ -19,12 +19,12 @@ def main():
 
     transformed_out = list()
 
-    with open( args.input, 'r' ) as of:
-        for record in parser.parse( of ):
-            transformed_rec = transform_fn( record )
-            transformed_out.append( transformed_rec )
-        
-
+    with open( args.input, 'r' ) as in_f:
+        with open( args.output, 'w' ) as out_f:
+            out_f.write( 'Protein\tAA Scores\n' )
+            for record in parser.parse( in_f ):
+                transformed_rec = transform_fn( record )
+                out_f.write( transformed_rec + '\n' )
 
 def get_parser( input_fname ):
     parser, transformer = MoronParser(), MoronTransformer().get_transform()
