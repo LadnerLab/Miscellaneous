@@ -18,3 +18,9 @@ optional arguments:
                         cores, one per amino acid in the sequence.
 ```
 
+### do_pred
+```
+Perform IUPred analysis on a fasta containing more than one sequence. 
+IUPred must be executable with './iupred2a'. Output is sent to standard out.
+USAGE: do_pred.py input_file
+```
