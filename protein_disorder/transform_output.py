@@ -10,7 +10,10 @@ def main():
                                                      "It will be inferred from which program the output is. ",
                              type = str
                            )
-    arg_parser.add_argument( '--output', '-o', help = "Name of file to write output to. File will contain a header.", default = 'transformed.tsv' )
+    arg_parser.add_argument( '--output', '-o', help = "Name of file to write output to. File will contain a header followed by one line per sequence. "
+                             "Each line will be a comma-separated list of disorder predictions cores, one per amino acid in the sequence.",
+                             default = 'transformed.tsv'
+                           )
 
 
     args = arg_parser.parse_args() 
