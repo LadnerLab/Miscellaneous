@@ -25,21 +25,35 @@ def main():
 
     args = arg_parser.parse_args() 
 
-    parse_data = parse_input( args.input, transform_fn = transform )
+    parsed_data = parse_input( args.input, transform_fn = transform )
+    write_output( args.output, parsed_data )
 
+
+def write_output( out_fname, data ):
+
+    range_to_str = lambda x: '-'.join( [ str( item ) for item in x ] )
+
+    with open( out_fname, 'w' ) as of:
+        of.write( 'Sequence Name\tRanges\n' )
+        for item in data:
+            name = item[ 0 ]
+            ranges = item[ 1 ]
+
+            ranges = [ range_to_str( item ) for item in ranges ]
+
+            of.write( '%s\t%s\n' % ( name, ','.join( ranges ) ) )
 
 def collapse( values, threshold ):
     values = [ float( item ) for item in values ]
 
     ranges_above = list()
-    current_range = [ 0, 0 ]
+    current_range = [ -1, -1 ]
 
-    is_default = lambda x: x == [ 0 , 0 ]
+    is_default = lambda x: x == [ -1 , -1 ]
 
 
     for idx, item in enumerate( values ):
         if item >= threshold:
-
             # check if this is the start of a range
             if is_default( current_range ):
                 current_range[ 0 ] = idx
@@ -49,9 +63,10 @@ def collapse( values, threshold ):
                 
         else:
             # end of a range - or continuation of a streak below threshold
+            # make sure ranges of length 1 are not included
             if not( is_default( current_range ) ) and current_range[ 0 ] < current_range[ 1 ]:
                 ranges_above.append( tuple( current_range.copy() ) )
-            current_range = [ 0, 0 ]
+            current_range = [ -1, -1 ]
     return ranges_above
         
 
