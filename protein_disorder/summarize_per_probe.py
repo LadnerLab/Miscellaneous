@@ -18,7 +18,21 @@ def main():
     args = argp.parse_args()
 
     sequences = parse_fasta( args.probes )
+    moron_scores = scores_to_dict( args.more_ronn )
+    iupred_scores = scores_to_dict( args.iupred )
 
+
+def scores_to_dict( fname ):
+    to_float = lambda x: map( float, x.strip().split( ',' ) )
+
+    out = dict()
+    with open( fname, 'r' ) as of:
+        for lineno, line in enumerate( of ):
+            if lineno: # skip header
+                seq_name, scores = line.strip().split( '\t' )
+                out[ seq_name ] = list( to_float( scores ) )
+
+    return out
 
 def parse_fasta( fname ):
     names, sequences = oligo.read_fasta_lists( fname )
