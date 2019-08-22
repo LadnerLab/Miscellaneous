@@ -2,6 +2,7 @@
 import sys
 import argparse
 import protein_oligo_library as oligo
+import numpy as np
 
 
 def main():
@@ -14,12 +15,47 @@ def main():
                      )
     argp.add_argument( '--iupred', help = "File containing transformed IUPred scores." )
     argp.add_argument( '--more_ronn', help = "File containing transformed MoreRONN scores." )
+    argp.add_argument( '--output', '-o', help = "Name of file to write output to.", default = "probe_summaries.tsv" )
 
     args = argp.parse_args()
 
     sequences = parse_fasta( args.probes )
     moron_scores = scores_to_dict( args.more_ronn )
     iupred_scores = scores_to_dict( args.iupred )
+
+    with open( args.output, 'w' ) as of:
+
+        # for each probe
+        for probe in sequences:
+            to_write = list()
+
+            to_write.append( probe.get_name() )
+            start, end = probe.get_locations()
+            # get the start, end locations
+            # get the scores in the range [start, end)
+            try:
+                mor_score = moron_scores[ probe.name_no_loc() ][ start:end ]
+                iupred_score = iupred_scores[ probe.name_no_loc() ][ start:end ]
+            except KeyError:
+                print( probe.get_name() )
+
+
+            # calculate mean
+            mor_mean = np.mean( mor_score )
+            iupred_mean = np.mean( iupred_score )
+
+            mor_50, mor_75 = count_positions_above( mor_score, 0.50, 0.75 )
+            iupred_50, iupred_75 = count_positions_above( iupred_score, 0.50, 0.75 )
+
+            to_write += [ mor_mean, mor_50, mor_75 ]
+            to_write += [ iupred_mean, iupred_50, iupred_75 ]
+
+            of.write( '\t'.join( map( str, to_write ) ) + '\n' )
+
+
+def count_positions_above( data, *positions ):
+    count_ge = lambda data, thresh: sum( [ x >= thresh for x in data ] )
+    return [ count_ge( data, c ) for c in positions ]
 
 
 def scores_to_dict( fname ):
@@ -37,7 +73,7 @@ def scores_to_dict( fname ):
 def parse_fasta( fname ):
     names, sequences = oligo.read_fasta_lists( fname )
 
-    return [ Sequence( n, s ) for n, s in zip( names, sequences ) ]
+    return [ SequenceWithLocation( n, s ) for n, s in zip( names, sequences ) ]
 
 class Sequence:
     def __init__( self, name = "", seq = "" ):
@@ -65,10 +101,13 @@ class SequenceWithLocation( Sequence ):
         return ( self.start, self.end )
 
     def find_start( self ):
-        pass
+        return int( self.name.split( '_' )[ -2 ] )
 
     def find_end( self ):
-        pass
+        return int( self.name.split( '_' )[ -1 ] )
+
+    def name_no_loc( self ):
+        return '_'.join( self.name.split( '_' )[ :-2 ] )
         
 
 if __name__ == '__main__':
