@@ -16,18 +16,21 @@ def main():
     argp.add_argument( '--iupred', help = "File containing transformed IUPred scores." )
     argp.add_argument( '--more_ronn', help = "File containing transformed MoreRONN scores." )
     argp.add_argument( '--output', '-o', help = "Name of file to write output to.", default = "probe_summaries.tsv" )
+    argp.add_argument( '--thresholds', '-t', help = "Comma-separated list of thresholds to use", type = str, default = "0.5,0.75" ) 
 
     args = argp.parse_args()
+
+    thresholds = list( map( float, args.thresholds.split( ',' ) ) )
 
     sequences = parse_fasta( args.probes )
     moron_scores = scores_to_dict( args.more_ronn )
     iupred_scores = scores_to_dict( args.iupred )
 
     with open( args.output, 'w' ) as of:
-
-        of.write( 'probe\tmore_ronn_mean\tmore_ronn_cnt_ge_0.5\tmore_ronn_cnt_ge_0.75\t'
-                  'iupred_mean\tiupred_cnt_ge_0.5\tiupred_cnt_ge_0.75\n'
+        of.write( 'probe\tmore_ronn_mean\t' + '\t'.join( [ 'more_ronn_cnt_ge_%.2f' % item for item in thresholds ] ) + '\t' +
+                  'iupred_mean\t' + '\t'.join( [ 'iupred_cnt_ge_%.2f' % item for item in thresholds ] ) + '\n'
                 )
+
         # for each probe
         for probe in sequences:
             to_write = list()
@@ -52,8 +55,8 @@ def main():
             mor_list.append( mor_mean )
             iupred_list.append( iupred_mean )
 
-            mor_list += count_positions_above( mor_score, 0.50, 0.75 )
-            iupred_list += count_positions_above( iupred_score, 0.50, 0.75 )
+            mor_list += count_positions_above( mor_score, *thresholds )
+            iupred_list += count_positions_above( iupred_score, *thresholds )
 
             to_write += mor_list
             to_write += iupred_list
