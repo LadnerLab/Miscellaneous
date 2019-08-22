@@ -25,8 +25,8 @@ def main():
 
     with open( args.output, 'w' ) as of:
 
-        of.write( 'Probe\tMoreRONN mean\tCount >= 0.5\tCount >= 0.75\t'
-                  'IUPred mean\tCount >=0.5\tCount >= 0.75\n'
+        of.write( 'probe\tmore_ronn_mean\tmore_ronn_cnt_ge_0.5\tmore_ronn_cnt_ge_0.75\t'
+                  'iupred_mean\tiupred_cnt_ge_0.5\tiupred_cnt_ge_0.75\n'
                 )
         # for each probe
         for probe in sequences:
