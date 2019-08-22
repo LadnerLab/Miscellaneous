@@ -31,6 +31,8 @@ def main():
         # for each probe
         for probe in sequences:
             to_write = list()
+            mor_list = list()
+            iupred_list = list()
 
             to_write.append( probe.get_name() )
             start, end = probe.get_locations()
@@ -47,11 +49,14 @@ def main():
             mor_mean = np.mean( mor_score )
             iupred_mean = np.mean( iupred_score )
 
-            mor_50, mor_75 = count_positions_above( mor_score, 0.50, 0.75 )
-            iupred_50, iupred_75 = count_positions_above( iupred_score, 0.50, 0.75 )
+            mor_list.append( mor_mean )
+            iupred_list.append( iupred_mean )
 
-            to_write += [ mor_mean, mor_50, mor_75 ]
-            to_write += [ iupred_mean, iupred_50, iupred_75 ]
+            mor_list += count_positions_above( mor_score, 0.50, 0.75 )
+            iupred_list += count_positions_above( iupred_score, 0.50, 0.75 )
+
+            to_write += mor_list
+            to_write += iupred_list
 
             of.write( '\t'.join( map( str, to_write ) ) + '\n' )
 
