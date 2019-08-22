@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
+import matplotlib
+matplotlib.use( 'agg' )
 import matplotlib.pyplot as plt
 import csv
 import math
@@ -21,8 +23,8 @@ def parse_values( f1, f2 ):
             if count:
                 spl1 = line1.split( '\t' )
                 spl2 = line2.split( '\t' )
-                x += transf( spl1[ 1 ] )
-                y += transf( spl2[ 1 ] )
+                x += transf( spl1[ 1::10 ] )
+                y += transf( spl2[ 1::10 ] )
             count += 1
     return x, y
 def main():
@@ -46,7 +48,7 @@ def main():
     ax.set_aspect('equal')
     ax.set_xlim(lims)
     ax.set_ylim(lims)
-    plt.savefig( 'correlation.pdf', bbox_inches = 'tight' )
+    plt.savefig( 'correlationxy.pdf', bbox_inches = 'tight' )
 
 if __name__ == '__main__':
     main()
