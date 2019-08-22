@@ -11,7 +11,7 @@ def main():
                      )
 
     argp.add_argument( '--thresholds', '-t', help = "Comma-separated list of thresholds to use", type = str, default = "0.5,0.75" ) 
-    argp.add_argument( '--output', '-o', help = "Name of file to write output to.", default = "probe_summaries.tsv" )
+    argp.add_argument( '--output', '-o', help = "Name of file to write output to.", default = "species_summaries.tsv" )
 
     args = argp.parse_args()
     thresholds = list( map( float, args.thresholds.split( ',' ) ) )
@@ -20,6 +20,22 @@ def main():
 
     aggreg_means = aggregate_means( means )
 
+    with open( args.output, 'w' ) as of:
+        of.write( 'species_id\t' + '\t'.join( [ 'more_ronn_perc_probes_mean_ge_%.2f' %  item for item in thresholds ] )  + '\t' +
+                  '\t'.join( [ 'iupred_perc_probes_mean_ge_%.2f' %  item for item in thresholds ] ) + '\n'
+        )
+
+        for species, data in aggreg_means.items():
+            moron_percents = map( str, percent_items_above( data[ 0 ], *thresholds ) )
+            iupred_percents = map( str, percent_items_above( data[ 1 ], *thresholds ) )
+            of.write( species + '\t' +  '\t'.join( moron_percents ) + '\t' + '\t'.join( iupred_percents ) + '\n' )
+
+def percent_items_above( data, *thresholds ):
+    return [ item / len( data ) for item in count_positions_above( data, *thresholds ) ] 
+
+def count_positions_above( data, *positions ):
+    count_ge = lambda data, thresh: sum( [ x >= thresh for x in data ] )
+    return [ count_ge( data, c ) for c in positions ]
 
 def aggregate_means( dataframe ):
     data = dict()
