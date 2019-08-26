@@ -22,8 +22,14 @@ def main():
                        "This argument is only necessary if the peptides included in '--enriched_peptides' are encoded. "
                        "Tab-delimited file with the first entry the un-encoded name, and the second the encoded name."
                      )
+    argp.add_argument( '--quantiles', '-q', help = "The quantiles to compute for each moreRONN and IUPred scores. Should "
+                       "be comma-delimited list of values.",
+                       type = str, default = "0.25,0.5,0.75"
+                     )
 
     args = argp.parse_args()
+
+    quantiles = sorted( map( float, args.quantiles.strip().split( ',' ) ) )
 
     peptide_scores = get_peptide_scores( args.peptide_scores )
     enr_species    = pd.read_csv( args.deconv, index_col = 'Species ID', sep = '\t' )
@@ -37,17 +43,28 @@ def main():
     enr_probe_data = get_enr_probe_data( peptide_scores, enr_probes )
     species_means_enr = aggregate_means( enr_probe_data )
 
+    # remove any unenriched species from our consideration
     # use list() for eager evaluation
     list( map( lambda x: species_means_enr.pop( x ),
                filter( lambda x: int( x ) not in enr_species.index, list( species_means_enr.keys() ) )
              )
         )
 
-    for key, value in species_means_enr.items():
-        print( key, scipy.stats.ttest_ind( value[ 0 ], species_means_global[ key ][ 0 ] ) )
+    quantiles_enr = get_quantiles( species_means_enr, quantiles )
+    quantiles_unr = get_quantiles( species_means_global, quantiles )
 
-    # get only the enriched probes, aggregate the counts to a species level
-    # species_means_enriched = aggregate_means( enr_species )
+def get_quantiles( data, quantiles ):
+    output = dict()
+    for id, scores in data.items():
+        output[ id ] = dict()
+
+        for q in quantiles:
+            if q not in output[ id ]:
+                output[ id ][ q ] = ( 0, 0 )
+            output[ id ][ q ][ 0 ] = np.quantile( scores[ 0 ], q )
+            output[ id ][ q ][ 1 ] = np.quantile( scores[ 1 ], q )
+
+    return output
 
 def get_probes_from_file( probe_fname, map_fname = "" ):
     out = list()
