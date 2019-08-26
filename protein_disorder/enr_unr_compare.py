@@ -81,6 +81,61 @@ def get_p_vals( unenriched, enriched ):
     return output
 
 
+def write_outputs( of_name,
+                   q_enr, q_unr,
+                   means_unr, means_enr,
+                   quantiles,
+                   p_scores
+                 ):
+    with open( of_name, 'w' ) as of:
+        of.write( 'species_id\t' )
+
+        list( map(
+                  lambda x: of.write( 'more_ronn_enriched_quantile_%.2f\tiupred_enriched_quantile_%.2f\t' % ( x, x ) ),
+                  quantiles
+                 )
+            )
+        list( map(
+                  lambda x: of.write( 'more_ronn_unenriched_quantile_%.2f\tiupred_unenriched_quantile_%.2f\t' % ( x, x ) ),
+                  quantiles
+                 )
+            )
+
+        of.write( 'more_ronn_enriched_mean\tiupred_enriched_mean\t' )
+        of.write( 'more_ronn_unenriched_mean\tiupred_unenriched_mean\t' )
+        of.write( 'more_ronn_p_value\tiupred_p_value\n' )
+
+        for key, quantile in q_enr.items():
+            of.write( key + '\t' )
+            # write enriched quantiles
+            for q_id, q_val in quantile.items():
+                of.write( '%.6f\t%.6f\t' % ( q_val[ 0 ], q_val[ 1 ] ) )
+
+            # write unenriched quantiles
+            for q_id, q_val in q_unr[ key ].items():
+                of.write( '%.6f\t%.6f\t' % ( q_val[ 0 ], q_val[ 1 ] ) )
+
+            # write enriched means
+            of.write( '%.6f\t%.6f\t' % ( np.mean( means_enr[ key ][ 0 ] ),
+                                         np.mean( means_enr[ key ][ 1 ] )
+                                       )
+            )
+
+            # write unenriched means
+            of.write( '%.6f\t%.6f\t' % ( np.mean( means_unr[ key ][ 0 ] ),
+                                         np.mean( means_unr[ key ][ 1 ] )
+                                       )
+            )
+
+
+            # write moron and iupred p values
+            of.write( '%.6f\t%.6f' % ( p_scores[ key ][ 0 ], p_scores[ key ][ 1 ] ) )
+                
+
+            of.write( '\n' )
+            
+
+
 def get_quantiles( data, quantiles ):
     output = dict()
     for id, scores in data.items():
