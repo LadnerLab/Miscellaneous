@@ -26,6 +26,9 @@ def main():
                        "be comma-delimited list of values.",
                        type = str, default = "0.25,0.5,0.75"
                      )
+    argp.add_argument( '--output', '-o', help = "Name of file to write output to.",
+                       type = str, default = "enr_unr_output.tsv"
+                     ) 
 
     args = argp.parse_args()
 
@@ -53,6 +56,31 @@ def main():
     quantiles_enr = get_quantiles( species_means_enr, quantiles )
     quantiles_unr = get_quantiles( species_means_global, quantiles )
 
+    p_values = get_p_vals( species_means_global, species_means_enr )
+
+    write_outputs( args.output,
+                   q_enr = quantiles_enr,
+                   q_unr = quantiles_unr,
+                   means_unr = species_means_global,
+                   means_enr = species_means_enr,
+                   p_scores = p_values,
+                   quantiles = quantiles
+                 )
+
+def get_p_vals( unenriched, enriched ):
+    output = dict()
+
+    for key, means in enriched.items():
+        output[ key ] = [ 0, 0 ]
+
+        # moron 
+        output[ key ][ 0 ] = scipy.stats.ttest_ind( means[ 0 ], unenriched[ key ][ 0 ] ).pvalue
+
+        #iupred 
+        output[ key ][ 1 ] = scipy.stats.ttest_ind( means[ 1 ], unenriched[ key ][ 1 ] ).pvalue
+    return output
+
+
 def get_quantiles( data, quantiles ):
     output = dict()
     for id, scores in data.items():
@@ -60,7 +88,7 @@ def get_quantiles( data, quantiles ):
 
         for q in quantiles:
             if q not in output[ id ]:
-                output[ id ][ q ] = ( 0, 0 )
+                output[ id ][ q ] = [ 0, 0 ]
             output[ id ][ q ][ 0 ] = np.quantile( scores[ 0 ], q )
             output[ id ][ q ][ 1 ] = np.quantile( scores[ 1 ], q )
 
