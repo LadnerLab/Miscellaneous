@@ -3,6 +3,7 @@ import re
 import argparse
 import scipy.stats
 import pandas as pd
+import numpy as np
 
 def main():
     argp = argparse.ArgumentParser( description = "Compare the " )
@@ -26,20 +27,24 @@ def main():
 
     peptide_scores = get_peptide_scores( args.peptide_scores )
     enr_species    = pd.read_csv( args.deconv, index_col = 'Species ID', sep = '\t' )
-    enr_probes     = set( get_probes_from_file( args.enriched_peptides,
+    enr_probes     = get_probes_from_file( args.enriched_peptides,
                                                 map_fname = args.pep_name_map
                                               )
-                        )
-
-
-    enr_df = pd.DataFrame()
-
-
+                     
     # get all of the probes, aggregate the counts to a species-level
     species_means_global = aggregate_means( peptide_scores )
 
-    map( lambda x: enr_df.append( species_means_global[ x ] ), enr_probes )
-    print( enr_df )
+    enr_probe_data = get_enr_probe_data( peptide_scores, enr_probes )
+    species_means_enr = aggregate_means( enr_probe_data )
+
+    # use list() for eager evaluation
+    list( map( lambda x: species_means_enr.pop( x ),
+               filter( lambda x: int( x ) not in enr_species.index, list( species_means_enr.keys() ) )
+             )
+        )
+
+    for key, value in species_means_enr.items():
+        print( key, scipy.stats.ttest_ind( value[ 0 ], species_means_global[ key ][ 0 ] ) )
 
     # get only the enriched probes, aggregate the counts to a species level
     # species_means_enriched = aggregate_means( enr_species )
@@ -90,6 +95,20 @@ def get_species_id( name ):
     if groups:
         return groups.group( 2 )
     return None
+   
+def get_enr_probe_data( df, to_get ):
+    ret_df = pd.DataFrame( data = None,
+                           columns = df.columns,
+                           index = df.index
+                         )
+
+    to_get_set = set( to_get )
+
+    for index, row in df.iterrows():
+        if row[ 'probe' ] in to_get_set:
+            ret_df = ret_df.append( row )
+        
+    return ret_df.dropna()
 
 if __name__ == '__main__':
     main()
