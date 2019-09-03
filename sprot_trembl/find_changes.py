@@ -38,7 +38,7 @@ def main():
         target_ids = set( changed_ids )
 
     # write the output
-    header = 'id\t%s\t%s' % ( args.first, args.second )
+    header = f'id\t{args.first}\t{args.second}'
     write_output( args.output,
                   first_recs,
                   second_recs,
@@ -50,12 +50,10 @@ def write_output( fname, first_records, second_records, target_ids, header = "" 
 
     with open( fname, 'w' ) as of:
         if header:
-            of.write( '%s\n' % header )
+            of.write( f'{header}\n' )
 
         for id in target_ids:
-            of.write( '%s\t%s\t%s\n' %
-                      ( id, first_records[ id ], second_records[ id ] )
-                    )
+            of.write( f'{id}\t{first_records[ id ]}\t{second_records[ id ]}\n' )
             
 
 def get_records_from_fasta( fname ):
@@ -79,7 +77,7 @@ def parse_records( fname ):
 
     new_record = lambda x: x[ 0 ] == 'ID'
     record_id  = lambda x: x[ 0 ] == 'OX'
-    get_id     = lambda x: x.split( '=' )[ 1 ]
+    get_id     = lambda x: x.split( '=' )[ 1 ].replace( ';', '' )
 
     with open( fname, 'r' ) as of:
         for lineno, line in enumerate( of ):
