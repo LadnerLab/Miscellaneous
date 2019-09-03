@@ -13,6 +13,10 @@ def main():
     argp.add_argument( '--first', help = "The first data file to check." )
     argp.add_argument( '--second', help = "The second data file to check." )
     argp.add_argument( '--filter', help = "Fasta file of sequences to include. " )
+    argp.add_argument( '--peptides', help = "Fasta file to check for sequences whose ids were changed. "
+                       "If included, a column will be added to the output with the names of any sequences that were "
+                       "affected."
+                     )
     argp.add_argument( '--output', help = "Name of file to output.", default = "output.tsv" )
 
     args = argp.parse_args()
@@ -37,23 +41,58 @@ def main():
     else:
         target_ids = set( changed_ids )
 
+    affected_peptides = None
+    if args.peptides:
+        peptides = parse_peptides( args.peptides )
+        affected_peptides = find_affected_peptides( peptides, target_ids )
+
     # write the output
     header = f'id\t{args.first}\t{args.second}'
+
+    if args.peptides:
+        header += '\taffected_peptides'
+
     write_output( args.output,
                   first_recs,
                   second_recs,
                   target_ids,
+                  peptides = affected_peptides,
                   header = header
                 )
 
-def write_output( fname, first_records, second_records, target_ids, header = "" ):
+def parse_peptides( fname ):
+    names, sequences = oligo.read_fasta_lists( fname )
+    return names
+
+def find_affected_peptides( pep_list, ids ):
+    id_re = re.compile( "ID=([\S]+)\s[\S]+\sOXX=\d*,(\d*),\d*,\d*" )
+    output = dict()
+
+    for pep in pep_list:
+        search = re.search( id_re, pep )
+
+        if search:
+            id = search.group( 1 )
+            if id not in output:
+                output[ id ] = list()
+            output[ id ].append( pep )
+    return output
+
+def write_output( fname, first_records, second_records,
+                  target_ids, header = "", peptides = None
+                ):
 
     with open( fname, 'w' ) as of:
         if header:
             of.write( f'{header}\n' )
 
         for id in target_ids:
-            of.write( f'{id}\t{first_records[ id ]}\t{second_records[ id ]}\n' )
+            of.write( f'{id}\t{first_records[ id ]}\t{second_records[ id ]}' )
+
+            if peptides and id in peptides:
+                # join on '~' because that character is not in any names
+                of.write( f"\t{ '~'.join( peptides[ id ] ) }" )
+            of.write( '\n' )
             
 
 def get_records_from_fasta( fname ):
