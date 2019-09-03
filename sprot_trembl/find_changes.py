@@ -13,7 +13,7 @@ def main():
     argp.add_argument( '--first', help = "The first data file to check." )
     argp.add_argument( '--second', help = "The second data file to check." )
     argp.add_argument( '--filter', help = "Fasta file of sequences to include. " )
-    argp.add_argument( '--output', help = "Name of file to output." )
+    argp.add_argument( '--output', help = "Name of file to output.", default = "output.tsv" )
 
     args = argp.parse_args()
 
@@ -31,7 +31,6 @@ def main():
     changed_ids = filter( lambda x: first_recs[ x ] != second_recs[ x ],
                           to_search
                         )
-
     # filter out IDs that are not from the fasta (if included)
     if fasta_records:
         target_ids = set( changed_ids ) & fasta_records.keys() 
@@ -39,6 +38,25 @@ def main():
         target_ids = set( changed_ids )
 
     # write the output
+    header = 'id\t%s\t%s' % ( args.first, args.second )
+    write_output( args.output,
+                  first_recs,
+                  second_recs,
+                  target_ids,
+                  header = header
+                )
+
+def write_output( fname, first_records, second_records, target_ids, header = "" ):
+
+    with open( fname, 'w' ) as of:
+        if header:
+            of.write( '%s\n' % header )
+
+        for id in target_ids:
+            of.write( '%s\t%s\t%s\n' %
+                      ( id, first_records[ id ], second_records[ id ] )
+                    )
+            
 
 def get_records_from_fasta( fname ):
     records = dict()
