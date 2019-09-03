@@ -79,10 +79,10 @@ def parse_records( fname ):
 
     new_record = lambda x: x[ 0 ] == 'ID'
     record_id  = lambda x: x[ 0 ] == 'OX'
-    get_id     = lambda x: x.split( '=' )[ 1 ][ :-1 ]
+    get_id     = lambda x: x.split( '=' )[ 1 ]
 
     with open( fname, 'r' ) as of:
-        for line in of:
+        for lineno, line in enumerate( of ):
             spl = line.strip().split()
             try:
                 
@@ -92,7 +92,7 @@ def parse_records( fname ):
                 elif record_id( spl ):
                     records[ last_id ] = get_id( spl[ 1 ] )
             except IndexError:
-                print( line )
+                print( "No id found for line %d: " % ( lineno + 1 ),  line.strip() )
                 
     return records
 
