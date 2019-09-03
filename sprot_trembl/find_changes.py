@@ -69,7 +69,6 @@ def get_records_from_fasta( fname ):
                 id = name_search.group( 1 )
                 ox = name_search.group( 2 )
 
-                # records.append( DataRecord( id = id, ox = ox ) )
                 records[ id ] = str( ox )
             else:
                 print( "No match: ", name )
@@ -88,7 +87,6 @@ def parse_records( fname ):
             try:
                 
                 if new_record( spl ):
-                    # records.append( DataRecord( id = spl[ 1 ] ) )
                     records[ spl[ 1 ] ] = ''
                     last_id = spl[ 1 ]
                 elif record_id( spl ):
@@ -97,34 +95,6 @@ def parse_records( fname ):
                 print( line )
                 
     return records
-
-
-
-class DataRecord:
-    def __init__( self, id = '', ox = '' ):
-        self.id = id
-        self.ox = ox
-
-    def get_id( self ):
-        return self.id
-
-    def get_ox( self ):
-        return self.ox
-
-    def set_id( self, new_id ):
-        self.id = new_id
-
-    def set_ox( self, new_ox ):
-        self.ox = new_ox
-
-    def __hash__( self ):
-        return hash( self.id )
-
-    def __eq__( self, other ):
-        return self.id == other.id 
-
-    def __ne__( self, other ):
-        return not self.__eq__( other )
 
 if __name__ == '__main__':
     main()
