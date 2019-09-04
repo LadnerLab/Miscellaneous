@@ -9,8 +9,14 @@ def main():
                                   )
 
     argp.add_argument( '--fixed', help = 'Name of the file that corrects ids (output by find_changes.py)' )
-    argp.add_argument( '--original', help = "Name of the file to fix." )
-    argp.add_argument( '--output', help = "Name of file to output.", default = "output.tsv" )
+    argp.add_argument( '--original', help = "Name of the map file to fix. This file should be a tab-delimited "
+                       "file with two columns. The first column should be the original name, the second the "
+                       "name of the encoded peptide."
+                     )
+    argp.add_argument( '--output', help = "Name of file to output. Format of the output "
+                       "is the same as that of the input, but the names will be fixed to include "
+                       "the correct species-level IDs.", default = "output.tsv"
+                     )
 
     args = argp.parse_args()
 
