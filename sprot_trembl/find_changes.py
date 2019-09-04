@@ -13,7 +13,9 @@ def main():
     argp.add_argument( '--first', help = "The first data file to check." )
     argp.add_argument( '--second', help = "The second data file to check." )
     argp.add_argument( '--filter', help = "Fasta file of sequences to include. " )
-    argp.add_argument( '--peptides', help = "Fasta file to check for sequences whose ids were changed. "
+    argp.add_argument( '--fasta', help = "Optional Fasta file to check for sequences whose ids were changed. "
+                       "If not included, output will contain all of the changed IDs. \nOtherwise, only the sequences in "
+                       "this file whose ids have changed will be reported."
                        "If included, a column will be added to the output with the names of any sequences that were "
                        "affected."
                      )
@@ -42,14 +44,14 @@ def main():
         target_ids = set( changed_ids )
 
     affected_peptides = None
-    if args.peptides:
-        peptides = parse_peptides( args.peptides )
+    if args.fasta:
+        peptides = parse_peptides( args.fasta )
         affected_peptides = find_affected_peptides( peptides, target_ids )
 
     # write the output
     header = f'id\t{args.first}\t{args.second}'
 
-    if args.peptides:
+    if args.fasta:
         header += '\taffected_peptides'
 
     write_output( args.output,
