@@ -11,26 +11,41 @@ def main():
     argp.add_argument( '--size', help = "The size of sequence to generate.",
                        type = int, default = 90
                      )
+    argp.add_argument( '--codons', help = "Name of file to generate codons from." )
     argp.add_argument( '--output', help = "Name of fasta file to write random sequences to.",
                       default = 'random.fasta'
                     )
 
     args = argp.parse_args()
 
+    if args.codons:
+        codons = get_codons( args.codons )
+
     with open( args.output, 'w' ) as out_file:
         for index in range( args.num_seqs ):
-            seq = generate_nt_seq( args.size )
+            if args.codons:
+                seq = generate_nt_seq( args.size, lambda: random.choice( codons ) )
+            else:
+                seq = generate_nt_seq( args.size, generate_non_stop_codon )
 
             out_file.write( f'>seq_{index}\n{seq}\n' )
 
-def generate_nt_seq( size ):
+def get_codons( fname ):
+    out = list()
+    with open( fname, 'r' ) as of:
+        for line in of:
+            spl = line.strip().split( ',' )
+            out.append( spl[ 1 ] )
+    return out
+
+def generate_nt_seq( size, gen_fn ):
     seq = ''
 
     # codon size will not change
     codon_size = 3
 
     for index in range( size // codon_size ):
-        seq += generate_non_stop_codon()
+        seq += gen_fn()
     return seq
     
 def generate_non_stop_codon():
