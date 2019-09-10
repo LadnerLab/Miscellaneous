@@ -22,7 +22,7 @@ def main():
 def write_output( fname, seqs ):
     with open( fname, 'w' ) as of:
        for s in seqs:
-            of.write('>{s.name}\n{s.seq}\n')
+            of.write( f'>{s.name}\n{s.seq}\n' )
 
 
 def translate( aa_map, seq ):
