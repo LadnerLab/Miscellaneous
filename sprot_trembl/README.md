@@ -43,3 +43,23 @@ optional arguments:
                        same as that of the input, but the names will be fixed
                        to include the correct species-level IDs.
 ```
+
+### Fix ids in a map and fasta files given a substitution record
+```
+usage: fix_ids_fasta_and_map.py [-h]
+                                [--substitution_record SUBSTITUTION_RECORD]
+                                [--fasta FASTA] [--map MAP] [--suffix SUFFIX]
+
+Given a file noting changes made in ids, change a map and fasta files.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --substitution_record SUBSTITUTION_RECORD
+  --fasta FASTA         Comma-separated list of fasta files in which to change
+                        ids.
+  --map MAP             Name of map file associating long peptide names to
+                        short peptide names to change.
+  --suffix SUFFIX       Suffix to add to the end of names of original files,
+                        before the filetype separator. For example, file.fasta
+                        becomes file_suffix.fasta
+```
