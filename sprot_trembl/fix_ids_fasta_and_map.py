@@ -47,11 +47,11 @@ def fix_map( fname, sub_record ):
     with open( fname, 'r' ) as of:
         for line in of:
             line = line.strip()
-            spl = line.strip( '\t' )
+            spl = line.split( '\t' )
 
-            split_on_un = spl[ 0 ].split( '\t' )
+            split_on_un = spl[ 0 ].split( '_' )
             name_only = '_'.join( split_on_un[ :-2 ] )
-            location  = '_' + '_'.join( split_on_un[ -2: ] )
+            location  = '_'.join( split_on_un[ -2: ] )
 
             if name_only in sub_record:
                 name_only = sub_record[ name_only ]
