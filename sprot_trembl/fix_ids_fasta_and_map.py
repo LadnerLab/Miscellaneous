@@ -32,6 +32,34 @@ def main():
 
         oligo.write_fasta_lists( prefix + '.' + suffix, fixed_n, fixed_s )
 
+    new_map = fix_map( args.map, sub_record )
+
+    prefix, suffix = args.map.split( '.' )
+    new_map_fname = prefix + '_' + args.suffix + '.' + suffix
+
+    with open( new_pep_fname, 'w' ) as of:
+        for entry in new_map:
+            of.write( f'{entry[ 0 ]}\t{entry[ 1 ]}\n' )
+
+def fix_map( fname, sub_record ):
+    out = list()
+
+    with open( fname, 'r' ) as of:
+        for line in of:
+            line = line.strip()
+            spl = line.strip( '\t' )
+
+            split_on_un = spl[ 0 ].split( '\t' )
+            name_only = '_'.join( split_on_un[ :-2 ] )
+            location  = '_'.join( split_on_un[ -2: ] )
+
+            if name_only in sub_record:
+                name_only = sub_record[ name_only ]
+            new_name = '_'.join( name_only, location )
+
+            out.append( ( new_name, spl[ 1 ] )
+    return out
+
 def parse_sub_record( fname ):
     with open( fname, 'r' ) as of:
         out = dict()
