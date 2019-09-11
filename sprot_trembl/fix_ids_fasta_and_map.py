@@ -57,7 +57,7 @@ def fix_map( fname, sub_record ):
                 name_only = sub_record[ name_only ]
             new_name = '_'.join( name_only, location )
 
-            out.append( ( new_name, spl[ 1 ] )
+            out.append( ( new_name, spl[ 1 ] ) )
     return out
 
 def parse_sub_record( fname ):
