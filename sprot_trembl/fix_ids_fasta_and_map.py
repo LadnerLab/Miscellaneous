@@ -25,19 +25,19 @@ def main():
     sub_record = parse_sub_record( args.substitution_record )
 
     for fasta in fastas:
-        fixed_n, fixed_s = fix_fasta_names( fasta, id_map )
+        fixed_n, fixed_s = fix_fasta_names( fasta, sub_record )
 
         prefix, suffix = fasta.split( '.' )
         prefix += '_' + args.suffix 
 
-        oligo.write_fasta_lists( prefix + '.' + suffix, fixed_n, fixed_s )
+        oligo.write_fastas( fixed_n, fixed_s, prefix + '.' + suffix )
 
     new_map = fix_map( args.map, sub_record )
 
     prefix, suffix = args.map.split( '.' )
     new_map_fname = prefix + '_' + args.suffix + '.' + suffix
 
-    with open( new_pep_fname, 'w' ) as of:
+    with open( new_map_fname, 'w' ) as of:
         for entry in new_map:
             of.write( f'{entry[ 0 ]}\t{entry[ 1 ]}\n' )
 
@@ -55,7 +55,7 @@ def fix_map( fname, sub_record ):
 
             if name_only in sub_record:
                 name_only = sub_record[ name_only ]
-            new_name = '_'.join( name_only, location )
+            new_name = '_'.join( [ name_only, location ] )
 
             out.append( ( new_name, spl[ 1 ] ) )
     return out
@@ -76,7 +76,7 @@ def parse_sub_record( fname ):
         return out
 
 def fix_fasta_names( fname, id_map ):
-    name, seqs = oligo.read_fasta_lists( fname )
+    names, seqs = oligo.read_fasta_lists( fname )
     fixed_names = list()
 
     for name in names:
