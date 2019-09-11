@@ -25,6 +25,11 @@ def main():
     for fasta in fastas:
         fixed_n, fixed_s = fix_fasta_names( fasta, id_map )
 
+        prefix, suffix = fasta.split( '.' )
+        prefix += '_' + args.suffix 
+
+        oligo.write_fasta_lists( prefix + '.' + suffix, fixed_n, fixed_s )
+
 def fix_fasta_names( fname, id_map ):
     name, seqs = oligo.read_fasta_lists( fname )
     fixed_names = list()
@@ -45,6 +50,7 @@ def fix_fasta_names( fname, id_map ):
                 new_name = id_map[ name ]
 
         fixed_names.append( new_name )
+    return fixed_names, seqs
 
 def is_peptide_name( name ):
     pep_name_re = r'(\S|\s)*OXX=(\S)*_\d+_\d+'
