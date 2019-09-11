@@ -32,14 +32,15 @@ def main():
 
         oligo.write_fastas( fixed_n, fixed_s, prefix + '.' + suffix )
 
-    new_map = fix_map( args.map, sub_record )
+    if args.map:
+        new_map = fix_map( args.map, sub_record )
 
-    prefix, suffix = args.map.split( '.' )
-    new_map_fname = prefix + '_' + args.suffix + '.' + suffix
+        prefix, suffix = args.map.split( '.' )
+        new_map_fname = prefix + '_' + args.suffix + '.' + suffix
 
-    with open( new_map_fname, 'w' ) as of:
-        for entry in new_map:
-            of.write( f'{entry[ 0 ]}\t{entry[ 1 ]}\n' )
+        with open( new_map_fname, 'w' ) as of:
+            for entry in new_map:
+                of.write( f'{entry[ 0 ]}\t{entry[ 1 ]}\n' )
 
 def fix_map( fname, sub_record ):
     out = list()
