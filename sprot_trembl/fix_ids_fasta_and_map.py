@@ -51,7 +51,7 @@ def fix_map( fname, sub_record ):
 
             split_on_un = spl[ 0 ].split( '\t' )
             name_only = '_'.join( split_on_un[ :-2 ] )
-            location  = '_'.join( split_on_un[ -2: ] )
+            location  = '_' + '_'.join( split_on_un[ -2: ] )
 
             if name_only in sub_record:
                 name_only = sub_record[ name_only ]
@@ -84,12 +84,11 @@ def fix_fasta_names( fname, id_map ):
         if is_peptide_name( name ):
             split = name.split( '_' )
             name_only = '_'.join( split[ :-2 ] )
-            location  = '_'.join( split[ -2: ] )
+            location  = '_' + '_'.join( split[ -2: ] )
 
             if name_only in id_map:
                 new_name = id_map[ name_only ]
                 new_name += location
-
         else:
             if name in id_map:
                 new_name = id_map[ name ]
