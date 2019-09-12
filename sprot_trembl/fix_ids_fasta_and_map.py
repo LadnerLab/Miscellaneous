@@ -21,16 +21,17 @@ def main():
 
     args = argp.parse_args()
 
-    fastas = args.fasta.split( ',' )
     sub_record = parse_sub_record( args.substitution_record )
 
-    for fasta in fastas:
-        fixed_n, fixed_s = fix_fasta_names( fasta, sub_record )
+    if args.fasta:
+        fastas = args.fasta.split( ',' )
+        for fasta in fastas:
+            fixed_n, fixed_s = fix_fasta_names( fasta, sub_record )
 
-        prefix, suffix = fasta.split( '.' )
-        prefix += '_' + args.suffix 
+            prefix, suffix = fasta.split( '.' )
+            prefix += '_' + args.suffix 
 
-        oligo.write_fastas( fixed_n, fixed_s, prefix + '.' + suffix )
+            oligo.write_fastas( fixed_n, fixed_s, prefix + '.' + suffix )
 
     if args.map:
         new_map = fix_map( args.map, sub_record )
