@@ -15,8 +15,22 @@ def main():
 
     input_distances = parse_distances( args.input )
     input_format = nt_or_aa( input_distances )
-    input_map = parse_map( args.map )
+    input_map = parse_map( args.map, fmt = input_format )
 
+def parse_map( filename, fmt = CountMode.AA ):
+    key_index = fmt == CountMode.AA
+    value_index = not( key_index )
+    output = dict()
+    
+    with open( filename, 'r' ) as open_f:
+        for line in open_f: # no header
+            str_spl = line.strip().split( '\t' )
+
+            new_key = str_spl[ key_index ]
+            new_val = str_spl[ val_index ]
+
+            output[ new_key ] = new_val 
+    return output
 
 def parse_distances( ifname ):
     output = list()
