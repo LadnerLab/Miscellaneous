@@ -2,6 +2,11 @@
 import argparse
 from enum import Enum
 
+class CountMode( Enum ):
+    NT = 0
+    AA = 1
+
+
 def main():
     argp = argparse.ArgumentParser( description = "Given the nearest neighbors of either NT/AA sequences and a map "
                                                   "associating AA <-> NT sequences, determine the translated "
@@ -17,7 +22,29 @@ def main():
     input_format = nt_or_aa( input_distances )
     input_map = parse_map( args.map, fmt = input_format )
 
+    output_distances = create_distances( input_distances,
+                                         input_map
+                                       )
+
+def create_distances( in_dist, in_map ):
+    output = list()
+    hamm = lambda x, y: sum( [ a != b for a, b in zip( x , y ) ] )
+
+    for distance in in_dist:
+        seq, dist, neighbor = distance
+
+        tran_seq = in_map[ seq ]
+        tran_neighbor = in_map[ neighbor ]
+
+        dist = hamm( tran_seq, tran_neighbor )
+        new = tuple( tran_seq, str( dist ), tran_neighbor )
+
+        output.append( new )
+    return output
+
 def parse_map( filename, fmt = CountMode.AA ):
+    # input is formatted: NT\tAA, so this allows us to select
+    # the necessary index
     key_index = fmt == CountMode.AA
     value_index = not( key_index )
     output = dict()
@@ -69,9 +96,6 @@ def nt_or_aa( input_tuples, num_check = 10 ):
     return CountMode.NT
 
 
-class CountMode( Enum ):
-    NT = 0
-    AA = 1
 
 
 if __name__ == '__main__':
