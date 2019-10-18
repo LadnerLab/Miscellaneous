@@ -41,11 +41,11 @@ int main( int argc, char **argv )
     std::size_t inner_index = 0;
 
     #pragma omp parallel for private( index, inner_index ) shared( seqs, map )
-    for( index = 0; index < seqs.size() - 1; ++index )
+    for( index = 0; index < seqs.size(); ++index )
         {
             std::string my_seq = seqs[ index ];
 
-            for( inner_index = index + 1; inner_index < seqs.size(); ++inner_index )
+            for( inner_index = 0; inner_index < seqs.size(); ++inner_index )
                 {
                     if( inner_index != index )
                         {
