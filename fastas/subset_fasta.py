@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-from read_write_files import read_fasta_lists, write_fasta                 #Imports two functions, one that reads in name and sequences from a fasta file and the other writes out the new fasta in the correct format, both are defined in read_write_files.py, available at www.stanford.edu/~jtladner 
 import sys
 
 # This script extracts a subset of sequences from a phylip file and writes them to a new phylip file with the same name as the old file + a suffix that is specified on the command line
