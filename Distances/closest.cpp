@@ -14,47 +14,74 @@ int hamming( const std::string& a, const std::string& b );
 
 int main( int argc, char **argv )
 {
-    if( argc != 3 )
+    if( !( argc == 3
+           || argc == 4
+         )
+      )
         {
-            std::cout << "Wrong number of arguments, must include input fasta and number of threads";
+            std::cout << "Wrong number of arguments!\n";
+            std::cout << "USAGE: " << argv[ 0 ] << " in_fasta search_fasta (optional) num_threads\n";
+            std::cout << "If search_fasta is not included, then in_fasta will be both the reference and the search.\n";
             return EXIT_FAILURE;
         }
 
     std::string in_f = argv[ 1 ];
-    omp_set_num_threads( atoi( argv[ 2 ] ) );
+
+    int num_threads_index = 0;
 
     std::vector<std::string> seqs;
+    std::vector<std::string> search_seqs;
+    std::vector<std::string> *search_seqs_ptr = nullptr;
 
     get_seqs( seqs, in_f );
-
 	std::size_t length = seqs[ 0 ].length();
 
-    std::unordered_map<std::string, std::pair<int,std::string>> map;
-    map.reserve( seqs.size() );
-
-    for( const auto& seq : seqs )
+    if( argc == 3 )
         {
-            map.emplace( seq, std::make_pair(length, "") );
+            num_threads_index = 2;
+            search_seqs_ptr = &seqs;
+        }
+    else // argc = 4 here
+        {
+            std::string search_f = argv[ 2 ];
+            num_threads_index = 3;
+
+            get_seqs( search_seqs, search_f );
+            search_seqs_ptr = &search_seqs;
+        }
+
+    omp_set_num_threads( atoi( argv[ num_threads_index ] ) );
+    
+
+    std::unordered_map<std::string, std::pair<int,std::string>> map;
+    map.reserve( search_seqs_ptr->size() );
+
+    for( const auto& seq : *search_seqs_ptr )
+        {
+            map.emplace( seq, std::make_pair( length, "" ) );
         }
 
     std::size_t index = 0;
     std::size_t inner_index = 0;
 
-    #pragma omp parallel for private( index, inner_index ) shared( seqs, map )
-    for( index = 0; index < seqs.size(); ++index )
+    #pragma omp parallel for private( index, inner_index ) shared( seqs, search_seqs_ptr, map )
+    for( index = 0; index < search_seqs_ptr->size(); ++index )
         {
-            std::string my_seq = seqs[ index ];
+            const std::string& my_seq = (*search_seqs_ptr)[ index ];
+            auto distance = map.find( my_seq );
 
             for( inner_index = 0; inner_index < seqs.size(); ++inner_index )
                 {
-                    if( inner_index != index )
-                        {
-                            int dist = hamming( my_seq, seqs[ inner_index ] );
+                    const std::string& my_seq_inner = seqs[ inner_index ];
 
-                            if( map.find( my_seq )->second.first > dist )
-                                {
-                                    map.find( my_seq )->second = std::make_pair( dist, seqs[ inner_index ] );
-                                }
+                    int dist = hamming( my_seq, my_seq_inner );
+
+                    if( dist > 0
+                        && distance->second.first > dist
+                      )
+                        {
+                            distance->second.first = dist;
+                            distance->second.second = my_seq_inner;
                         }
                 }
         }
