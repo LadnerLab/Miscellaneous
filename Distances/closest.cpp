@@ -80,7 +80,7 @@ int main( int argc, char **argv )
                         && distance->second.first > dist
                       )
                         {
-                            distance->second.first = dist;
+                            distance->second.first  = dist;
                             distance->second.second = my_seq_inner;
                         }
                 }
