@@ -12,15 +12,14 @@ def main():
 
     with open( in_csv, 'r' ) as in_f, open( out_tsv, 'w' ) as out_f:
         for lineno, line in enumerate( in_f ):
-            if lineno:
-                spl = line.strip().split( ',' )
-                try:
-                    peptide    = spl[ 1 ]
-                    nucleotide = spl[ 2 ]
+           spl = line.strip().split( ',' )
+           try:
+               peptide    = spl[ 1 ]
+               nucleotide = spl[ 2 ]
 
-                    out_f.write( f'{ nucleotide }\t{ peptide }\n' )
-                except IndexError:
-                    print( f"Error on line {lineno}: {line}" )
+               out_f.write( f'{ nucleotide }\t{ peptide }\n' )
+           except IndexError:
+               print( f"Error on line {lineno}: {line}" )
 
 
 if __name__ == '__main__':
