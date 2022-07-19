@@ -19,6 +19,8 @@ def main():
             cmd="%s --quiet %s >%s_mafft-%s.fasta" % (a, each, ".".join(each.split(".")[:-1]), a)
             print (cmd)
             job=Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+            (output, err) = job.communicate()
+            job_status = job.wait()
 
 #----------------------End of main()
     
