@@ -1,5 +1,5 @@
-#! /usr/bin/python2.7
-# /usr/bin/env python
+#! /usr/bin/env python
+# /usr/bin/python2.7
 
 # By Jason Ladner
 #Example command: 'sub_blast_parse.py --reg_out name --color_out name --no_hits name --numHits # --numHsps # --goodHit #.# --xml file'
