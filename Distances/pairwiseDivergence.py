@@ -25,7 +25,7 @@ parser.add_argument("-m", "--batchMode", default=None, metavar='\b', help="You c
 
 #New argument group to underscore that these arguments are required despite being provided with flags
 reqArgs = parser.add_argument_group("required arguments")
-reqArgs.add_argument("-t", "--divThreshold", required=True, type=int, metavar='\b', help="% divergent threshold")
+reqArgs.add_argument("-t", "--divThreshold", required=True, type=int, metavar='\b', help="Percent divergent threshold")
 
 args = parser.parse_args()
 
@@ -77,8 +77,10 @@ if args.batchMode:
 else:
 	inputDF = pd.DataFrame([args.alignment, args.referenceName, args.start, args.stop], columns=inputcolumnNames)
 
+data = []
+# for i, row in inputDF.iterrows():
 for row in range(len(inputDF)):
-	
+
 	#Reading in alignment file, returns dictionary containing name:aligned sequence.
 	alignmentD= ft.read_fasta_dict_upper(inputDF["Alignment"][row])
 
@@ -96,7 +98,6 @@ for row in range(len(inputDF)):
 	#Opening output file
 	#fout= open(args.outputName, "w")
 	hd=0
-	data = []
 	for s1, s2 in it.combinations(alignmentD.values(),2):
 		#Calculate divergence across amplicon
 		s1amplicon=s1[alignedStart:alignedStop]
@@ -129,8 +130,8 @@ for row in range(len(inputDF)):
 		data.append([os.path.basename(inputDF["Alignment"][row]), ampDiv, wgSWDiv, wgoverallDiv])
 		print(data)
 	outputcolumnNames=["Alignment","ampDiv","wgDiv (SW)","wgDiv (overall)"]
-	outputDF = pd.DataFrame(data, columns=outputcolumnNames)
-
+	
+outputDF = pd.DataFrame(data, columns=outputcolumnNames)
 
 # 	#Descriptive statistics
 # 	if hd == 0:
