@@ -13,8 +13,8 @@ from collections import defaultdict
 
 parser = argparse.ArgumentParser(description='''...''')
 
-#parser.add_argument("-o", "--outputName", default="XXX", metavar='\b', help="... [XXX]")
-#parser.add_argument("-v", "--visualization", default="XXX", metavar='\b', help="... [XXX]")
+parser.add_argument("-o", "--outputName", default="divergenceSummary.tsv", metavar='\b', help="... [XXX]")
+parser.add_argument("-v", "--visualization", default="scatterplot-pairwiseDiv.png", metavar='\b', help="... [XXX]")
 parser.add_argument("-w", "--windowSize", type=int, metavar='\b', help="Window size. If not provided, amplicon size is used as default.")
 parser.add_argument("-s", "--stepSize", default=400, type=int, metavar='\b', help="Step size (i.e. number of nucleotides to move between each window). [XXX]")
 parser.add_argument("-f", "--alignment", metavar='\b', help="Alignment file")
@@ -49,7 +49,7 @@ def seqWindows(s1, s2, windowSize, stepSize):
 	if i<len(ns1)-1:
 		ns1windowsL.append(ns1[-windowSize:])
 		ns2windowsL.append(ns2[-windowSize:])
-
+		
 	return ns1windowsL, ns2windowsL
 
 def calcDivergence(s1, s2):
@@ -69,7 +69,6 @@ def calcDivergence(s1, s2):
 	else:
 		return None
 
-
 #Prep for batch mode
 inputcolumnNames=["Alignment","referenceSeq","ampliconStart", "ampliconStop"]
 if args.batchMode:
@@ -77,6 +76,9 @@ if args.batchMode:
 else:
 	inputDF = pd.DataFrame([args.alignment, args.referenceName, args.start, args.stop], columns=inputcolumnNames)
 
+#Opening output file
+fout= open(args.outputName, "w")
+hd=0
 data = []
 # for i, row in inputDF.iterrows():
 for row in range(len(inputDF)):
@@ -94,11 +96,11 @@ for row in range(len(inputDF)):
 			elif cnt == inputDF["ampliconStop"][row]:
 				alignedStop=i
 				break
-	
-	#Opening output file
-	#fout= open(args.outputName, "w")
-	hd=0
-	for s1, s2 in it.combinations(alignmentD.values(),2):
+
+	for nseq1, nseq2 in it.combinations(alignmentD.items(),2):
+		s1name,s1= nseq1[0],nseq1[1]
+		s2name,s2= nseq2[0],nseq2[1]
+		
 		#Calculate divergence across amplicon
 		s1amplicon=s1[alignedStart:alignedStop]
 		s2amplicon=s2[alignedStart:alignedStop]
@@ -128,45 +130,52 @@ for row in range(len(inputDF)):
 			continue
 		
 		data.append([os.path.basename(inputDF["Alignment"][row]), ampDiv, wgSWDiv, wgoverallDiv])
-		print(data)
+		
+		#Descriptive statistics for output TSV
+		if hd == 0:
+			header= "Alignment\tSequence #1\tSequence #2\tampliconDiv (%%)\twholegenomeDiv (%%)\t%% of windows >%.2f%% divergent\tMaximum*\tQ3*\tMedian*\tQ1*\tMinimum*\tIQR*\tMean*\t\t*Of all divergences, from each window" % args.divThreshold
+			fout.write(header)
+		maximum= max(windowDivL)
+		q3= np.percentile(windowDivL, 75, interpolation = 'midpoint')
+		median= np.percentile(windowDivL, 50, interpolation = 'midpoint')
+		q1= np.percentile(windowDivL, 25, interpolation = 'midpoint')
+		minimum= min(windowDivL)
+		IQR= q3-q1
+		mean= np.mean(windowDivL)
+		
+		line= "\n%s\t%s\t%s\t%f\t%f\t%f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f" % (inputDF["Alignment"][row],s1name,s2name,ampDiv,wgoverallDiv,wgSWDiv,maximum,q3,median,q1,minimum,IQR,mean)
+		fout.write(line)
+		
+		hd+=1
+		
 	outputcolumnNames=["Alignment","ampDiv","wgDiv (SW)","wgDiv (overall)"]
-	
 outputDF = pd.DataFrame(data, columns=outputcolumnNames)
+fout.close()
 
-# 	#Descriptive statistics
-# 	if hd == 0:
-# 		header= "Sequence #1\tSequence #2\tMaximum*\tQ3*\tMedian*\tQ1*\tMinimum*\tIQR*\tMean*\t\t*%% of windows >%f%% divergent" % args.divThreshold
-# 		fout.write(header)
-# 	maximum= max(windowDivL)
-# 	q3= np.percentile(windowDivL, 75, interpolation = 'midpoint')
-# 	median= np.percentile(windowDivL, 50, interpolation = 'midpoint')
-# 	q1= np.percentile(windowDivL, 25, interpolation = 'midpoint')
-# 	minimum= min(windowDivL)
-# 	IQR= q3-q1
-# 	mean= np.mean(windowDivL)
-# 
-# 	line= "\n%s\t%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f" % (s1NAME,s2NAME,maximum,q3,median,q1,minimum,IQR,mean)		
-# 	fout.write(line)
-# 
-# 	hd+=1
-# 
-# fout.close()
 
-# print("ampDivL:",ampDivL)
-# print("wgSWDivL:",wgSWDivL)
+####Visualizations
+fig, ax = plt.subplots(2,1, figsize=(7,6))
 
 #Generate scatterplot with pairwise divergence comparisons (% of windows > args.divThreshold% divergent vs. amplicon divergence)
-sns.lmplot(x="ampDiv", y="wgDiv (SW)", data=outputDF, fit_reg=False, hue="Alignment", legend=False)
-plt.legend(loc='lower right')
-plt.show()
+#legend_map = 
+v0 = sns.scatterplot(x="ampDiv", y="wgDiv (SW)", ax=ax[0], data=outputDF, hue="Alignment", s=50, alpha=0.75, legend=False)
+v0.set_ylabel(("%% of windows\n>%d%% divergent" % args.divThreshold), fontsize=14)
+v0.set_xlabel("Divergence across amplicon (%)", fontsize=14)
+v0.tick_params(axis="both", which="major", labelsize=11)
+v0.set_ylim(0,100)
+v0.set_xlim(0,100)
+v0.set_title("Pairwise comparison of whole genome divergence (via SW)\nvs. amplicon divergence", fontsize=14)
 
-# fig, ax = plt.subplots(figsize=(8,6))
-# ax.scatter(ampDivL,wgSWDivL, s=50, alpha=0.50, c="#c51b8a")
-# ylabelName= "%% of windows >%d%% divergent" % args.divThreshold
-# ax.set_ylabel(ylabelName, fontsize=20)
-# ax.set_xlabel("% divergence at amplicon", fontsize=20)
-# ax.set_ylim(0,100)
-# ax.set_xlim(0,100)
-# ax.set_title("Pairwise comparison of divergence across\nwhole genome vs amplicon", fontsize=18)
-# ax.tick_params(axis="both", which="major", labelsize=15)
-# fig.savefig("scatter.pdf")
+#Generate scatterplot with pairwise divergence comparisons (overall whole genome divergence vs. amplicon divergence)
+v1 = sns.scatterplot(x="ampDiv", y="wgDiv (overall)", ax=ax[1], data=outputDF, hue="Alignment", s=50, alpha=0.75, legend=False)
+v1.axline((0, 0), linestyle='dotted', color='black', slope=1)
+v1.set_ylabel("Divergence across\nwhole genome (%)", fontsize=14)
+v1.set_xlabel("Divergence across amplicon (%)", fontsize=14)
+v1.tick_params(axis="both", which="major", labelsize=11)
+v1.set_ylim(0,100)
+v1.set_xlim(0,100)
+v1.set_title("Pairwise comparison of whole genome divergence (overall)\nvs. amplicon divergence", fontsize=14)
+
+fig.tight_layout(pad=2.5)
+#fig.legend(bbox_to_anchor=(1.02, 1), loc='center right', title='Alignment')
+fig.savefig(args.visualization, bbox_inches='tight', dpi=200)
