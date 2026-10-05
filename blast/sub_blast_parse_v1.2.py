@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # /usr/bin/python2.7
 
 # By Jason Ladner
